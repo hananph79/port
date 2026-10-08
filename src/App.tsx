@@ -766,9 +766,10 @@ function About() {
       <div className="container about-grid">
         <Reveal className="about-visual">
           <div className="about-monogram">
-            <span>
-              PH<span>.</span>
-            </span>
+            <img
+              src="/WhatsApp%20Image%202026-10-08%20at%2021.43.00.jpeg"
+              alt="Hanan standing outdoors"
+            />
             <div className="monogram-caption">
               THE PERSON
               <br />
