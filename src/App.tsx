@@ -495,7 +495,7 @@ function Hero() {
           <Reveal className="hero-art" delay={0.25}>
             <div className="portrait-frame">
               <img
-                src="/hanan-profile.jpeg"
+                src="/WhatsApp%20Image%202026-10-08%20at%2021.31.24.jpeg"
                 alt="Hanan looking out over the city from a terrace"
               />
               <div className="portrait-label">
