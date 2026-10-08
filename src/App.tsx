@@ -49,7 +49,7 @@ function Header() {
         else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
       }
     };
-    const onResize = () => { if (window.innerWidth >= 900) setOpen(false); };
+    const onResize = () => { if (window.innerWidth >= 1024) setOpen(false); };
     window.addEventListener('keydown', onKey); window.addEventListener('resize', onResize);
     return () => { document.body.style.overflow = previousOverflow; window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize); };
   }, [open]);
