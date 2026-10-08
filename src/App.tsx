@@ -1,146 +1,1067 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { motion, MotionConfig, useReducedMotion, useScroll, useSpring } from 'framer-motion';
-import { ArrowUpRight, ArrowRight, ArrowDown, Download, Menu, X, Mail, Phone, MapPin, Linkedin, Sparkles, Eye, TrendingUp, Users, Video, Network, Layers, Check, ChevronUp, Send } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import CountUp from 'react-countup';
-import { useInView } from 'react-intersection-observer';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { profile, skills, tools, experience, achievements, education, certifications } from './content';
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  motion,
+  MotionConfig,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+} from "framer-motion";
+import {
+  ArrowUpRight,
+  ArrowRight,
+  ArrowDown,
+  Download,
+  Menu,
+  X,
+  Mail,
+  Phone,
+  MapPin,
+  Linkedin,
+  Check,
+  Send,
+  Plus,
+  MoveUpRight,
+} from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import CountUp from "react-countup";
+import { useInView } from "react-intersection-observer";
+import {
+  profile,
+  skills,
+  tools,
+  experience,
+  achievements,
+  education,
+  certifications,
+} from "./content";
 
-const cn = (...values: Parameters<typeof clsx>) => twMerge(clsx(values));
-const links = [{ name: 'About', id: 'about' }, { name: 'Experience', id: 'experience' }, { name: 'Skills', id: 'skills' }, { name: 'Contact', id: 'contact' }];
-const resumeUrl = '/peerzada-abdul-hanan-resume.pdf';
-const editorialEase = [.22, 1, .36, 1] as const;
-
-function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+const resumeUrl = "/peerzada-abdul-hanan-resume.pdf";
+const ease = [0.22, 1, 0.36, 1] as const;
+const links = [
+  { name: "Selected work", id: "work" },
+  { name: "About", id: "about" },
+  { name: "Experience", id: "experience" },
+  { name: "Expertise", id: "skills" },
+];
+function Reveal({
+  children,
+  className = "",
+  delay = 0,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+}) {
   const reduced = useReducedMotion();
-  return <motion.div className={className} initial={reduced ? false : { opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .1 }} transition={{ duration: reduced ? 0 : .75, ease: editorialEase, delay: reduced ? 0 : delay }}>{children}</motion.div>;
+  return (
+    <motion.div
+      className={className}
+      initial={reduced ? false : { opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.08 }}
+      transition={{
+        duration: reduced ? 0 : 0.7,
+        ease,
+        delay: reduced ? 0 : delay,
+      }}
+    >
+      {children}
+    </motion.div>
+  );
 }
-
-function Number({ value, suffix = '', decimals = 0 }: { value: number; suffix?: string; decimals?: number }) {
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: .2 });
+function Number({
+  value,
+  suffix = "",
+  decimals = 0,
+}: {
+  value: number;
+  suffix?: string;
+  decimals?: number;
+}) {
+  const { ref, inView } = useInView({ triggerOnce: true });
   const reduced = useReducedMotion();
-  return <span ref={ref} aria-label={`${value.toLocaleString()}${suffix}`}><span aria-hidden="true">{reduced ? `${value.toLocaleString(undefined, { minimumFractionDigits: decimals })}${suffix}` : <CountUp start={0} end={inView ? value : 0} decimals={decimals} suffix={suffix} separator="," duration={1.6} />}</span></span>;
+  return (
+    <span ref={ref} aria-label={`${value.toLocaleString()}${suffix}`}>
+      <span aria-hidden="true">
+        {reduced ? (
+          `${value.toLocaleString(undefined, { minimumFractionDigits: decimals })}${suffix}`
+        ) : (
+          <CountUp
+            end={inView ? value : 0}
+            suffix={suffix}
+            decimals={decimals}
+            separator=","
+            duration={1.6}
+          />
+        )}
+      </span>
+    </span>
+  );
 }
-
+function SectionTitle({
+  number,
+  label,
+  children,
+  description,
+}: {
+  number: string;
+  label: string;
+  children: ReactNode;
+  description?: string;
+}) {
+  return (
+    <Reveal className="section-heading">
+      <div>
+        <span className="section-label">
+          {number} / {label}
+        </span>
+        <h2>{children}</h2>
+      </div>
+      {description && <p>{description}</p>}
+    </Reveal>
+  );
+}
 function Header() {
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState("");
   const reduced = useReducedMotion();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const focusAfterClose = useRef<HTMLElement | null>(null);
   const { scrollYProgress } = useScroll();
   const progress = useSpring(scrollYProgress, { stiffness: 180, damping: 30 });
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const menuButton = useRef<HTMLButtonElement>(null);
-  const menuPanel = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 20);
-    update(); window.addEventListener('scroll', update, { passive: true });
-    return () => window.removeEventListener('scroll', update);
+    const observer = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) setActive(entry.target.id);
+        }),
+      { rootMargin: "-15% 0px -60% 0px" },
+    );
+    document
+      .querySelectorAll("main > section[id]")
+      .forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
   }, []);
   useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    menuPanel.current?.querySelector<HTMLAnchorElement>('a')?.focus();
+    if (!open) {
+      focusAfterClose.current?.focus({ preventScroll: true });
+      focusAfterClose.current = null;
+      return;
+    }
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    panelRef.current?.querySelector("button")?.focus();
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { setOpen(false); menuButton.current?.focus(); }
-      if (event.key === 'Tab') {
-        const focusable = [menuButton.current, ...Array.from(menuPanel.current?.querySelectorAll<HTMLAnchorElement>('a') ?? [])].filter(Boolean) as HTMLElement[];
-        const first = focusable[0], last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
-        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+      if (event.key === "Tab") {
+        const targets = Array.from(
+          panelRef.current?.querySelectorAll<HTMLElement>("a, button") ?? [],
+        );
+        const first = targets[0],
+          last = targets[targets.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        }
+        if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
-    const onResize = () => { if (window.innerWidth >= 1024) setOpen(false); };
-    window.addEventListener('keydown', onKey); window.addEventListener('resize', onResize);
-    return () => { document.body.style.overflow = previousOverflow; window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize); };
+    const onResize = () => {
+      if (innerWidth >= 1000) setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("resize", onResize);
+    return () => {
+      document.body.style.overflow = overflow;
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", onResize);
+    };
   }, [open]);
-  return <header className={cn('site-header', scrolled && 'scrolled')}>
-    <div className="container nav-inner">
-      <a href="#home" className="brand" onClick={() => setOpen(false)} aria-label="Peerzada Abdul Hanan, home">Peerzada Abdul Hanan<span className="brand-dot">.</span></a>
-      <nav className="desktop-nav" aria-label="Main navigation">{links.map(link => <a key={link.id} href={`#${link.id}`}>{link.name}</a>)}</nav>
-      <a className="btn-gold nav-connect" href="#contact">Let’s Connect <ArrowUpRight size={15} /></a>
-      <button ref={menuButton} className="mobile-toggle" aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
-    </div>
-    <motion.div className="reading-progress" style={{ scaleX: reduced ? scrollYProgress : progress }} aria-hidden="true" />
-    {open && <motion.div id="mobile-menu" ref={menuPanel} className="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation" initial={reduced ? false : { opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : .3, ease: editorialEase }}><span className="section-label">Explore the story</span>{links.map((link, i) => <motion.a key={link.id} href={`#${link.id}`} onClick={() => setOpen(false)} initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduced ? 0 : .06 + i * .045, duration: reduced ? 0 : .35, ease: editorialEase }}><span>0{i + 1}</span>{link.name}<ArrowUpRight /></motion.a>)}<a className="mobile-resume" href={resumeUrl} download><Download size={18} /> Download Resume</a></motion.div>}
-  </header>;
+  function closeMenu() {
+    focusAfterClose.current = buttonRef.current;
+    setOpen(false);
+  }
+  function navigate(id: string) {
+    focusAfterClose.current = document.getElementById(id);
+    setOpen(false);
+  }
+  return (
+    <header className="site-header">
+      <div className="container nav-inner">
+        <a
+          href="#home"
+          className="brand"
+          aria-label="Peerzada Abdul Hanan, home"
+        >
+          hanan<span>✦</span>
+          <small>STRATEGY & STORIES</small>
+        </a>
+        <nav className="desktop-nav" aria-label="Main navigation">
+          {links.map((link) => (
+            <a
+              key={link.id}
+              href={`#${link.id}`}
+              aria-current={active === link.id ? "location" : undefined}
+            >
+              {link.name}
+            </a>
+          ))}
+        </nav>
+        <a className="nav-connect" href="#contact">
+          Let’s talk <ArrowUpRight size={18} />
+        </a>
+        <button
+          ref={buttonRef}
+          className="mobile-toggle"
+          onClick={() => setOpen(!open)}
+          aria-label={open ? "Close navigation" : "Open navigation"}
+          aria-expanded={open}
+          aria-hidden={open}
+          tabIndex={open ? -1 : 0}
+          aria-controls="mobile-menu"
+        >
+          {open ? <X /> : <Menu />}
+        </button>
+      </div>
+      <motion.div
+        className="reading-progress"
+        aria-hidden="true"
+        style={{ scaleX: reduced ? scrollYProgress : progress }}
+      />
+      {open && (
+        <motion.div
+          ref={panelRef}
+          id="mobile-menu"
+          className="mobile-menu"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation"
+          initial={reduced ? false : { opacity: 0, y: -12 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <div className="menu-heading">
+            <span className="section-label">Find your chapter</span>
+            <button
+              className="menu-close"
+              aria-label="Close navigation"
+              onClick={closeMenu}
+            >
+              <X />
+            </button>
+          </div>
+          {[...links, { name: "Contact", id: "contact" }].map((link, i) => (
+            <a
+              href={`#${link.id}`}
+              key={link.id}
+              onClick={() => navigate(link.id)}
+            >
+              <small>0{i + 1}</small>
+              {link.name}
+              <ArrowUpRight />
+            </a>
+          ))}
+          <a href={resumeUrl} download className="menu-resume">
+            Download Resume <Download size={18} />
+          </a>
+        </motion.div>
+      )}
+    </header>
+  );
 }
-
 function Hero() {
   const reduced = useReducedMotion();
-  const { ref: portraitRef, inView: portraitVisible } = useInView({ threshold: .1 });
-  return <section id="home" className="hero">
-    <div className="container hero-grid">
-      <div className="hero-copy">
-        <Reveal><div className="opportunity"><span className="status-dot" /> Open to Opportunities <Sparkles size={13} /></div></Reveal>
-        <div className="hero-eyebrow">DIGITAL MARKETING & CONTENT PROFESSIONAL</div>
-        <motion.h1 className="text-editorial" initial={reduced ? false : 'hidden'} animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: reduced ? 0 : .12, delayChildren: reduced ? 0 : .1 } } }}>
-          {['Strategy.', 'Storytelling.'].map(word => <span className="hero-word-mask" key={word}><motion.span className="hero-word" variants={{ hidden: { opacity: 0, y: '105%' }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .85, ease: editorialEase }}>{word}</motion.span></span>)}
-          <span className="hero-word-mask"><motion.span className="hero-final-line" variants={{ hidden: { opacity: 0, y: '105%' }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .85, ease: editorialEase }}>Real <em className="hero-impact">impact.</em></motion.span></span>
-        </motion.h1>
-        <Reveal delay={.2}><p className="hero-description">I’m Hanan. I turn brand stories into meaningful connections — through strategy-led social media, content, and campaigns.</p></Reveal>
-        <Reveal className="hero-actions" delay={.3}><a href="#experience" className="btn-gold">View My Work <ArrowUpRight size={19} /></a><a href={resumeUrl} className="btn-outline-gold" download>Download Resume <Download size={17} /></a></Reveal>
-        <Reveal delay={.4} className="hero-stats">{[{ value: 1.5, suffix: 'M+', decimals: 1, label: 'Content views' }, { value: 1, suffix: 'M+', label: 'Impressions' }, { value: 7000, suffix: '+', label: 'Audience growth' }].map(stat => <div key={stat.label}><div className="hero-stat-value"><Number {...stat} /></div><span>{stat.label}</span></div>)}</Reveal>
+  return (
+    <section id="home" tabIndex={-1} className="hero">
+      <div className="container">
+        <div className="hero-topline">
+          <span>DIGITAL MARKETING & CONTENT</span>
+          <span>
+            <i /> Open to opportunities
+          </span>
+        </div>
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <motion.h1
+              initial={reduced ? false : "hidden"}
+              animate="visible"
+              variants={{
+                hidden: {},
+                visible: { transition: { staggerChildren: 0.12 } },
+              }}
+            >
+              {["Good stories.", "Real connections."].map((line) => (
+                <span className="line-mask" key={line}>
+                  <motion.span
+                    variants={{ hidden: { y: "110%" }, visible: { y: 0 } }}
+                    transition={{ duration: reduced ? 0 : 0.8, ease }}
+                  >
+                    {line}
+                  </motion.span>
+                </span>
+              ))}
+              <span className="line-mask">
+                <motion.em
+                  variants={{ hidden: { y: "110%" }, visible: { y: 0 } }}
+                  transition={{ duration: reduced ? 0 : 0.8, ease }}
+                >
+                  Lasting impact.
+                </motion.em>
+              </span>
+            </motion.h1>
+            <Reveal delay={0.2} className="hero-intro">
+              <span className="intro-rule" />
+              <p>
+                I’m <strong>Peerzada Abdul Hanan.</strong>
+                <br />I connect brands with people through thoughtful strategy,
+                compelling content, and stories worth sharing.
+              </p>
+            </Reveal>
+            <Reveal delay={0.3} className="hero-actions">
+              <a className="button button-dark" href="#work">
+                Explore my work <ArrowDown size={18} />
+              </a>
+              <a className="text-link" href={resumeUrl} download>
+                Download Resume <Download size={16} />
+              </a>
+            </Reveal>
+          </div>
+          <Reveal className="hero-art" delay={0.25}>
+            <div className="strategy-poster">
+              <div className="poster-meta">
+                <span>A NOTE ON MY APPROACH</span>
+                <span>01—03</span>
+              </div>
+              <div className="poster-type">
+                MAKE
+                <br />
+                IT <span>mean</span>
+                <br />
+                SOMETHING<span className="poster-period">.</span>
+              </div>
+              <svg
+                className="poster-arrow"
+                viewBox="0 0 180 100"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M8 80C65 90 33 8 89 20c28 6 14 48 39 43 14-2 26-25 35-48m-28 9 29-13 9 29"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <div className="poster-bottom">
+                <span>
+                  STRATEGY FIRST.
+                  <br />
+                  ALWAYS HUMAN.
+                </span>
+                <span className="poster-spark">✦</span>
+              </div>
+            </div>
+            <div className="result-ticket">
+              <span className="ticket-icon">
+                <ArrowUpRight />
+              </span>
+              <div>
+                <strong>1.5M+</strong>
+                <span>content views. real attention.</span>
+              </div>
+              <span className="ticket-caption">THE IMPACT</span>
+            </div>
+          </Reveal>
+        </div>
+        <div className="hero-bottom">
+          <span>
+            <MapPin size={14} /> Bengaluru, India
+          </span>
+          <span>3+ YEARS OF TURNING IDEAS INTO IMPACT</span>
+          <a href="#work" aria-label="Scroll to selected work">
+            <ArrowDown size={20} />
+          </a>
+        </div>
       </div>
-      <Reveal className="hero-art" delay={.2}>
-        <div className="portrait-overline"><span>THE PERSON BEHIND THE CONTENT</span><ArrowDown size={14} /></div>
-        <div className="portrait-scene" ref={portraitRef} data-visible={portraitVisible}><div className="portrait-halo" /><div className="portrait-circle"><span className="initials">PH<span className="initials-dot">.</span></span><span className="portrait-caption">A CREATIVE MIND.<br />A STRATEGIC APPROACH.</span></div><motion.div className="portrait-star" aria-hidden="true" initial={reduced ? false : { opacity: 0, rotate: -18, scale: .8 }} whileInView={{ opacity: 1, rotate: 0, scale: 1 }} viewport={{ once: true }} transition={{ duration: reduced ? 0 : .8, delay: reduced ? 0 : .3, ease: editorialEase }}><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="6"><path d="M50 4v92M4 50h92M17 17l66 66M17 83l66-66" /></svg></motion.div><motion.div className="portrait-note" initial={reduced ? false : { opacity: 0, y: 24, rotate: -6 }} whileInView={{ opacity: 1, y: 0, rotate: -3 }} viewport={{ once: true }} transition={{ type: "spring", stiffness: 100, damping: 18, delay: reduced ? 0 : .4 }}><span className="note-icon"><TrendingUp size={20} /></span><div><strong>Made for meaningful growth.</strong><span>Ideas with purpose. Content with impact.</span></div></motion.div><span className="portrait-side-label">CREATIVITY × STRATEGY</span></div>
-        <div className="portrait-footer"><span><MapPin size={13} /> Bengaluru, India</span><span>3+ years of storytelling</span></div>
-      </Reveal>
+    </section>
+  );
+}
+function BrandStrip() {
+  return (
+    <div className="brand-strip">
+      <div className="container">
+        <span className="section-label">Experience across</span>
+        <div className="company-names">
+          <span>
+            Inventure<span className="company-small">ACADEMY</span>
+          </span>
+          <span>Schneider Electric</span>
+          <span>Nurture Careers</span>
+          <span>AXIS BANK</span>
+        </div>
+      </div>
     </div>
-    <div className="container hero-bottom"><a href="#about"><span className="scroll-circle"><ArrowDown size={16} /></span> A little about me</a><span className="edition">STRATEGY LED. HUMAN FIRST.</span></div>
-  </section>;
+  );
 }
-
+function Work() {
+  return (
+    <section id="work" tabIndex={-1} className="section-space work">
+      <div className="container">
+        <SectionTitle
+          number="01"
+          label="Selected work"
+          description="A closer look at the brands, communities, and conversations I’ve helped grow."
+        >
+          Strategy in action.
+          <br />
+          <em>Stories with substance.</em>
+        </SectionTitle>
+        <div className="work-grid">
+          <Reveal>
+            <article className="work-card">
+              <div className="work-art work-art-school">
+                <div className="work-art-meta">
+                  <span>INVENTURE ACADEMY</span>
+                  <span>PORTFOLIO ILLUSTRATION</span>
+                </div>
+                <div className="school-poster">
+                  <span className="micro-label">
+                    ON CAMPUS. ONLINE. IN THE MOMENT.
+                  </span>
+                  <strong>
+                    Every day,
+                    <br />a new <em>story.</em>
+                  </strong>
+                  <div className="school-lines" aria-hidden="true">
+                    <span />
+                    <span />
+                    <span />
+                  </div>
+                  <span className="art-footnote">
+                    SOCIAL STRATEGY / REELS / EVENT MARKETING
+                  </span>
+                </div>
+                <div className="work-art-stamp">
+                  1M+<span>CAMPAIGN & EVENT VIEWS</span>
+                </div>
+              </div>
+              <div className="work-copy">
+                <span className="section-label">
+                  01 / Education & storytelling
+                </span>
+                <h3>Bringing a school’s stories to life.</h3>
+                <p>
+                  Connecting the everyday energy of Inventure Academy with its
+                  digital community, from social strategy to live event
+                  coverage.
+                </p>
+                <div className="work-tags">
+                  <span>Social strategy</span>
+                  <span>Video content</span>
+                  <span>Events</span>
+                </div>
+                <details className="work-details">
+                  <summary>
+                    Explore the work <Plus size={18} />
+                  </summary>
+                  <div>
+                    <p>
+                      As Marketing Associate - Digital & Content, I manage
+                      platform-specific storytelling across Instagram, Facebook,
+                      LinkedIn, and YouTube.
+                    </p>
+                    <ul>
+                      <li>
+                        Produced 8–10 weekly reels and high-frequency content.
+                      </li>
+                      <li>
+                        Contributed to 1M+ views across campaigns and events.
+                      </li>
+                      <li>
+                        Led pre-event, live, and post-event content
+                        amplification.
+                      </li>
+                    </ul>
+                    <a className="text-link" href="#experience">
+                      See the full role <ArrowRight size={16} />
+                    </a>
+                  </div>
+                </details>
+              </div>
+            </article>
+          </Reveal>
+          <Reveal delay={0.12}>
+            <article className="work-card">
+              <div className="work-art work-art-corporate">
+                <div className="work-art-meta">
+                  <span>SCHNEIDER ELECTRIC</span>
+                  <span>PORTFOLIO ILLUSTRATION</span>
+                </div>
+                <div className="corporate-poster">
+                  <span className="micro-label">
+                    LEADERSHIP. WITH A HUMAN VOICE.
+                  </span>
+                  <strong>
+                    Big ideas.
+                    <br />
+                    <em>Wider reach.</em>
+                  </strong>
+                  <div className="reach-art" aria-hidden="true">
+                    {[25, 42, 35, 61, 55, 75, 88, 100].map((height, i) => (
+                      <span key={i} style={{ height: `${height}%` }} />
+                    ))}
+                  </div>
+                  <span className="art-footnote">
+                    Illustrative artwork · results below
+                  </span>
+                </div>
+                <div className="corporate-metrics">
+                  <span>
+                    <strong>1M+</strong>Impressions
+                  </span>
+                  <span>
+                    <strong>4,000+</strong>Follower growth
+                  </span>
+                </div>
+              </div>
+              <div className="work-copy">
+                <span className="section-label">
+                  02 / Leadership & communication
+                </span>
+                <h3>Making global voices resonate.</h3>
+                <p>
+                  Building executive presence on LinkedIn and bringing global
+                  teams together through purposeful content and communication.
+                </p>
+                <div className="work-tags">
+                  <span>Executive content</span>
+                  <span>LinkedIn</span>
+                  <span>Communications</span>
+                </div>
+                <details className="work-details">
+                  <summary>
+                    Explore the work <Plus size={18} />
+                  </summary>
+                  <div>
+                    <p>
+                      As Marketing Specialist - Global, I connected business
+                      objectives with articles, presentations, campaigns, and
+                      social content.
+                    </p>
+                    <ul>
+                      <li>
+                        Achieved 1M+ impressions and 4,000+ follower growth
+                        through executive LinkedIn content strategy.
+                      </li>
+                      <li>
+                        Delivered newsletters and communication campaigns across
+                        global teams.
+                      </li>
+                      <li>
+                        Collaborated with PR teams and agencies on events,
+                        launches, and communication initiatives.
+                      </li>
+                    </ul>
+                    <a className="text-link" href="#experience">
+                      See the full role <ArrowRight size={16} />
+                    </a>
+                  </div>
+                </details>
+              </div>
+            </article>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+function Results() {
+  return (
+    <section id="achievements" tabIndex={-1} className="results section-space">
+      <div className="container">
+        <SectionTitle
+          number="02"
+          label="The impact"
+          description="Across platforms, brands, and teams. Results from my professional journey."
+        >
+          Creative work.
+          <br />
+          <em>Concrete outcomes.</em>
+        </SectionTitle>
+        <div className="results-grid">
+          {achievements.map((item, i) => (
+            <Reveal
+              className="result-cell"
+              key={item.title}
+              delay={(i % 3) * 0.07}
+            >
+              <span className="result-index">
+                0{i + 1} <ArrowUpRight size={16} />
+              </span>
+              <div className="result-number">
+                {item.number !== undefined ? (
+                  <Number
+                    value={item.number}
+                    suffix={item.suffix}
+                    decimals={item.decimals}
+                  />
+                ) : (
+                  item.text
+                )}
+              </div>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 function About() {
-  const details = [ ['Role', profile.role], ['Location', profile.location], ['Experience', '3+ years across education & global corporate environments'], ['Education', 'MBA · Marketing & Finance'], ['Languages', profile.languages.join(' · ')], ['Interests', profile.interests.join(' · ')] ];
-  return <section id="about" className="section-dark about section-space"><div className="container about-grid">
-    <Reveal><span className="section-label">01 / About me</span><h2 className="about-title text-editorial">Good stories connect.<br /><em>Great strategy grows.</em></h2>{profile.summary.map(paragraph => <p className="about-text" key={paragraph}>{paragraph}</p>)}<div className="features">{['Digital Marketing Strategy', 'Content Marketing & Copywriting', 'Brand Communication', 'Community & Event Marketing'].map(feature => <div key={feature}><span>✦</span>{feature}</div>)}</div></Reveal>
-    <Reveal className="info-card-dark" delay={.15}><div className="info-card-heading"><span className="section-label">The details</span><Sparkles size={20} /></div>{details.map(([label, value]) => <div className="info-row" key={label}><span>{label}</span><p>{value}</p></div>)}</Reveal>
-  </div></section>;
+  return (
+    <section id="about" tabIndex={-1} className="about section-space">
+      <div className="container about-grid">
+        <Reveal className="about-visual">
+          <div className="about-monogram">
+            <span>
+              PH<span>.</span>
+            </span>
+            <div className="monogram-caption">
+              THE PERSON
+              <br />
+              BEHIND THE STORIES
+            </div>
+            <span className="monogram-star" aria-hidden="true">
+              ✦
+            </span>
+          </div>
+          <div className="about-note">
+            A curious mind.
+            <br />
+            <em>A strategic eye.</em>
+          </div>
+          <div className="about-location">
+            <MapPin size={15} /> Bengaluru, Karnataka
+          </div>
+        </Reveal>
+        <Reveal className="about-copy">
+          <span className="section-label">03 / A little about me</span>
+          <h2>
+            Equal parts
+            <br />
+            strategy <em>& soul.</em>
+          </h2>
+          {profile.summary.map((p) => (
+            <p key={p}>{p}</p>
+          ))}
+          <div className="personal-details">
+            <div>
+              <span className="micro-label">BEYOND THE BRIEF</span>
+              <p>{profile.interests.join(" · ")}</p>
+            </div>
+            <div>
+              <span className="micro-label">LANGUAGES I SPEAK</span>
+              <p>{profile.languages.join(" · ")}</p>
+            </div>
+          </div>
+          <a href={resumeUrl} download className="text-link">
+            The full story, on paper <Download size={17} />
+          </a>
+        </Reveal>
+      </div>
+    </section>
+  );
 }
-
 function Experience() {
-  const reduced = useReducedMotion();
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: timelineRef, offset: ['start 75%', 'end 65%'] });
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 25 });
-  return <section id="experience" className="section-cream section-space"><div className="container"><Reveal className="section-heading"><span className="section-label">02 / The journey</span><h2>Experience that<br /><span className="editorial-accent">shapes the story.</span></h2><p>From ambitious education brands to global conversations.</p></Reveal>
-    <div className="timeline" ref={timelineRef}><div className="timeline-line timeline-track" aria-hidden="true" /><motion.div className="timeline-line timeline-progress" style={{ scaleY: reduced ? 1 : progress }} aria-hidden="true" />{experience.map((job, index) => <div className={cn('timeline-item', index % 2 === 1 && 'right')} key={job.company}><motion.span className="timeline-dot" initial={reduced ? false : { scale: .5 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: 'spring', stiffness: 250, damping: 18, delay: reduced ? 0 : .15 }} /><motion.article className="card-warm experience-card" whileHover={reduced ? undefined : { y: -4, transition: { duration: .25 } }} initial={reduced ? false : { x: index % 2 === 0 ? -32 : 32, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} viewport={{ once: true, amount: .1 }} transition={{ duration: reduced ? 0 : .7, ease: editorialEase }}><div className="job-top"><span className="job-category">{job.category}</span>{job.current && <span className="current-badge">CURRENT</span>}</div><h3>{job.company}</h3><p className="job-role">{job.role}</p><div className="job-dates">{job.dates}</div><ul>{job.points.map(point => <li key={point}>{point}</li>)}</ul></motion.article><span className="timeline-index">0{index + 1}</span></div>)}</div>
-  </div></section>;
+  return (
+    <section id="experience" tabIndex={-1} className="experience section-space">
+      <div className="container">
+        <SectionTitle
+          number="04"
+          label="The journey"
+          description="Different industries. New perspectives. One consistent thread: connecting people through content."
+        >
+          Built on experience.
+          <br />
+          <em>Driven by curiosity.</em>
+        </SectionTitle>
+        <div className="experience-list">
+          {experience.map((job, i) => (
+            <Reveal key={job.company}>
+              <details className="experience-row" open={i === 0}>
+                <summary>
+                  <span className="job-index">0{i + 1}</span>
+                  <span className="job-heading">
+                    <span className="job-company">{job.company}</span>
+                    <span className="job-role">{job.role}</span>
+                  </span>
+                  <span className="job-period">
+                    {job.current && (
+                      <span className="current-badge">
+                        <i /> CURRENT
+                      </span>
+                    )}
+                    <span>{job.dates}</span>
+                  </span>
+                  <Plus className="disclosure-icon" size={22} />
+                </summary>
+                <div className="job-body">
+                  <span className="micro-label">{job.category}</span>
+                  <ul>
+                    {job.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                </div>
+              </details>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
-
-const resultIcons = { views: Eye, impressions: TrendingUp, audience: Users, content: Video, team: Network, hub: Layers };
-function Achievements() {
-  const reduced = useReducedMotion();
-  return <section id="achievements" className="section-gold achievements section-space"><div className="container"><Reveal className="section-heading"><span className="section-label">03 / Proof in the numbers</span><h2 className="text-editorial">Results that speak.</h2><p>A few milestones. A lot of meaningful work.</p></Reveal><div className="achievement-grid">{achievements.map((result, index) => { const Icon = resultIcons[result.icon as keyof typeof resultIcons]; return <Reveal key={result.title} delay={index * .1}><motion.article initial={reduced ? false : { scale: .96 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ duration: reduced ? 0 : .6, ease: editorialEase }} className="card-warm achievement-card" whileHover={reduced ? undefined : { y: -4, transition: { duration: .25 } }}><div className="achievement-top"><Icon size={23} strokeWidth={1.5} /><span>0{index + 1}</span></div><div className="achievement-number">{'number' in result && result.number !== undefined ? <Number value={result.number} suffix={result.suffix} decimals={result.decimals} /> : result.text}</div><h3>{result.title}</h3><p>{result.description}</p></motion.article></Reveal>; })}</div></div></section>;
-}
-
 function Skills() {
-  const reduced = useReducedMotion();
-  return <section id="skills" className="section-white section-space"><div className="container skills-grid"><Reveal><span className="section-label">04 / Core skills</span><h2>Creative thinking.<br /><span className="editorial-accent">Strategic doing.</span></h2><p className="section-intro">The skills behind the stories, the campaigns, and the growth.</p><motion.div className="skill-tags" initial={reduced ? false : "hidden"} whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: reduced ? 0 : .04 } } }}>{skills.map(skill => <motion.span className="tag-skill" key={skill} variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .4, ease: editorialEase }}>{skill}</motion.span>)}</motion.div></Reveal><Reveal delay={.15}><span className="section-label">Tools & platforms</span><h3 className="tools-heading">A well-equipped toolkit.</h3><p className="section-intro">From the first idea to the final performance report.</p><motion.div className="tools-grid" initial={reduced ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: .15 }} variants={{ hidden: {}, visible: { transition: { staggerChildren: reduced ? 0 : .045 } } }}>{tools.map((tool, index) => <motion.div className="tool-card" key={tool} whileHover={reduced ? undefined : { y: -4, transition: { duration: .25 } }} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .5, ease: editorialEase }}><span className="tool-initial">{['M', 'G', 'C', 'Pr', 'C', 'F', 'C', 'W', 'S/H', 'O/S', 'X', 'P'][index]}</span><span>{tool}</span></motion.div>)}</motion.div></Reveal></div></section>;
+  const groups = [
+    {
+      title: "Find the direction.",
+      label: "STRATEGY",
+      text: "Campaign planning, audience insight, and optimization that give every piece of content a purpose.",
+      icon: "↗",
+    },
+    {
+      title: "Tell the story.",
+      label: "CONTENT",
+      text: "Copy, video, and platform-specific storytelling that turn brand messages into human connections.",
+      icon: "✳",
+    },
+    {
+      title: "Build the connection.",
+      label: "COMMUNICATION",
+      text: "Communities, events, and internal communication that bring people and brands closer.",
+      icon: "↔",
+    },
+  ];
+  return (
+    <section id="skills" tabIndex={-1} className="skills section-space">
+      <div className="container">
+        <SectionTitle
+          number="05"
+          label="What I bring"
+          description="From the first idea to the final performance report — a connected approach to marketing."
+        >
+          The thinking.
+          <br />
+          <em>The craft. The toolkit.</em>
+        </SectionTitle>
+        <div className="capability-grid">
+          {groups.map((group, i) => (
+            <Reveal className="capability" key={group.label} delay={i * 0.08}>
+              <span className="capability-icon" aria-hidden="true">
+                {group.icon === "✳" ? <MoveUpRight size={36} /> : group.icon}
+              </span>
+              <span className="micro-label">
+                0{i + 1} / {group.label}
+              </span>
+              <h3>{group.title}</h3>
+              <p>{group.text}</p>
+            </Reveal>
+          ))}
+        </div>
+        <div className="expertise-bottom">
+          <Reveal>
+            <h3 className="small-heading">The skills behind the work</h3>
+            <div className="skill-tags">
+              {skills.map((skill) => (
+                <span className="tag-skill" key={skill}>
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </Reveal>
+          <Reveal>
+            <h3 className="small-heading">Tools of the trade</h3>
+            <div className="tool-list">
+              {tools.map((tool) => (
+                <span key={tool}>
+                  {tool}
+                  <ArrowUpRight size={12} />
+                </span>
+              ))}
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
 }
-
-const contactSchema = z.object({ name: z.string().trim().min(2, 'Please enter at least 2 characters.').max(100, 'Please keep your name under 100 characters.'), email: z.string().trim().email('Please enter a valid email address.').max(254), subject: z.string().trim().min(3, 'Please enter a subject of at least 3 characters.').max(200), message: z.string().trim().min(10, 'Please write at least 10 characters.').max(3000, 'Please keep your message under 3,000 characters.') });
+const contactSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Please enter at least 2 characters.")
+    .max(100, "Please keep your name under 100 characters."),
+  email: z
+    .string()
+    .trim()
+    .email("Please enter a valid email address.")
+    .max(254),
+  subject: z
+    .string()
+    .trim()
+    .min(3, "Please enter a subject of at least 3 characters.")
+    .max(200),
+  message: z
+    .string()
+    .trim()
+    .min(10, "Please write at least 10 characters.")
+    .max(3000, "Please keep your message under 3,000 characters."),
+});
 type ContactValues = z.infer<typeof contactSchema>;
 function Contact() {
-  const { register, handleSubmit, formState: { errors } } = useForm<ContactValues>({ resolver: zodResolver(contactSchema) });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ContactValues>({ resolver: zodResolver(contactSchema) });
   const [draft, setDraft] = useState<string | null>(null);
   const onSubmit = (values: ContactValues) => {
     const body = `Hello Hanan,\n\n${values.message}\n\nFrom: ${values.name}\nEmail: ${values.email}`;
     const url = `mailto:${profile.email}?subject=${encodeURIComponent(values.subject)}&body=${encodeURIComponent(body)}`;
-    setDraft(url); window.open(url, '_blank', 'noopener,noreferrer');
+    setDraft(url);
+    window.open(url, "_blank", "noopener,noreferrer");
   };
-  return <section id="contact" className="section-dark contact section-space"><div className="container contact-grid"><Reveal><span className="section-label">05 / Let’s connect</span><h2 className="text-editorial">Let’s create<br /><em>something meaningful.</em></h2><p className="contact-intro">A brand story to tell? A community to grow? I’d love to hear what you have in mind.</p><div className="contact-links"><a href={`mailto:${profile.email}`}><Mail /><div><span>EMAIL</span><strong>{profile.email}</strong></div><ArrowUpRight className="contact-arrow" /></a><a href="tel:+919797085472"><Phone /><div><span>PHONE</span><strong>{profile.phone}</strong></div><ArrowUpRight className="contact-arrow" /></a><div><MapPin /><div><span>BASED IN</span><strong>{profile.location}</strong></div></div><a href={profile.linkedin} target="_blank" rel="noopener noreferrer"><Linkedin /><div><span>LINKEDIN</span><strong>Peerzada Abdul Hanan</strong></div><ArrowUpRight className="contact-arrow" /></a></div></Reveal><Reveal className="contact-form-wrap" delay={.15}><div className="form-heading"><h3>Start a conversation.</h3><Send size={21} /></div><form noValidate onSubmit={handleSubmit(onSubmit)}><div className="form-grid">{(['name', 'email', 'subject'] as const).map(field => <div className={field === 'subject' ? 'full-field' : ''} key={field}><label htmlFor={field}>{field.charAt(0).toUpperCase() + field.slice(1)}</label><input id={field} type={field === 'email' ? 'email' : 'text'} autoComplete={field === 'name' ? 'name' : field === 'email' ? 'email' : 'off'} {...register(field)} aria-invalid={!!errors[field]} aria-describedby={errors[field] ? `${field}-error` : undefined} />{errors[field] && <p className="field-error" id={`${field}-error`}>{errors[field]?.message}</p>}</div>)}<div className="full-field"><label htmlFor="message">Message</label><textarea id="message" rows={5} {...register('message')} aria-invalid={!!errors.message} aria-describedby={errors.message ? 'message-error' : undefined} />{errors.message && <p className="field-error" id="message-error">{errors.message.message}</p>}</div></div><button type="submit" className="btn-gold form-submit">Send Message <ArrowRight size={19} /></button><p className="form-note">Opens a prefilled draft in your email app. You review and send.</p>{draft && <div className="form-status" role="status"><Check size={18} /><span>Your email draft is ready. If your email app didn’t open, <a href={draft}>open the draft</a> or email <a href={`mailto:${profile.email}`}>{profile.email}</a> directly.</span></div>}</form></Reveal></div></section>;
+  return (
+    <section
+      id="contact"
+      tabIndex={-1}
+      className="section-dark contact section-space"
+    >
+      <div className="container contact-grid">
+        <Reveal>
+          <span className="section-label">06 / Your next chapter</span>
+          <h2 className="text-editorial">
+            Let’s create
+            <br />
+            <em>something meaningful.</em>
+          </h2>
+          <p className="contact-intro">
+            A brand story to tell? A community to grow? I’d love to hear what
+            you have in mind.
+          </p>
+          <div className="contact-links">
+            <a href={`mailto:${profile.email}`}>
+              <Mail />
+              <div>
+                <span>EMAIL</span>
+                <strong>{profile.email}</strong>
+              </div>
+              <ArrowUpRight className="contact-arrow" />
+            </a>
+            <a href="tel:+919797085472">
+              <Phone />
+              <div>
+                <span>PHONE</span>
+                <strong>{profile.phone}</strong>
+              </div>
+              <ArrowUpRight className="contact-arrow" />
+            </a>
+            <div>
+              <MapPin />
+              <div>
+                <span>BASED IN</span>
+                <strong>{profile.location}</strong>
+              </div>
+            </div>
+            <a
+              href={profile.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Linkedin />
+              <div>
+                <span>LINKEDIN</span>
+                <strong>Peerzada Abdul Hanan</strong>
+              </div>
+              <ArrowUpRight className="contact-arrow" />
+            </a>
+          </div>
+        </Reveal>
+        <Reveal className="contact-form-wrap" delay={0.15}>
+          <div className="form-heading">
+            <h3>Start a conversation.</h3>
+            <Send size={21} />
+          </div>
+          <form noValidate onSubmit={handleSubmit(onSubmit)}>
+            <div className="form-grid">
+              {(["name", "email", "subject"] as const).map((field) => (
+                <div
+                  className={field === "subject" ? "full-field" : ""}
+                  key={field}
+                >
+                  <label htmlFor={field}>
+                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                  </label>
+                  <input
+                    id={field}
+                    type={field === "email" ? "email" : "text"}
+                    autoComplete={
+                      field === "name"
+                        ? "name"
+                        : field === "email"
+                          ? "email"
+                          : "off"
+                    }
+                    {...register(field)}
+                    aria-invalid={!!errors[field]}
+                    aria-describedby={
+                      errors[field] ? `${field}-error` : undefined
+                    }
+                  />
+                  {errors[field] && (
+                    <p className="field-error" id={`${field}-error`}>
+                      {errors[field]?.message}
+                    </p>
+                  )}
+                </div>
+              ))}
+              <div className="full-field">
+                <label htmlFor="message">Message</label>
+                <textarea
+                  id="message"
+                  rows={5}
+                  {...register("message")}
+                  aria-invalid={!!errors.message}
+                  aria-describedby={
+                    errors.message ? "message-error" : undefined
+                  }
+                />
+                {errors.message && (
+                  <p className="field-error" id="message-error">
+                    {errors.message.message}
+                  </p>
+                )}
+              </div>
+            </div>
+            <button type="submit" className="btn-gold form-submit">
+              Send Message <ArrowRight size={19} />
+            </button>
+            <p className="form-note">
+              Opens a prefilled draft in your email app. You review and send.
+            </p>
+            {draft && (
+              <div className="form-status" role="status">
+                <Check size={18} />
+                <span>
+                  Your email draft is ready. If your email app didn’t open,{" "}
+                  <a href={draft}>open the draft</a> or email{" "}
+                  <a href={`mailto:${profile.email}`}>{profile.email}</a>{" "}
+                  directly.
+                </span>
+              </div>
+            )}
+          </form>
+        </Reveal>
+      </div>
+    </section>
+  );
 }
 
 function Footer() {
-  return <footer className="footer"><div className="container"><div className="footer-grid"><div className="footer-brand"><a href="#home" className="text-editorial">Peerzada<br />Abdul Hanan<span>.</span></a><p>Strategy led. Story driven.<br />Always human.</p><div className="social-links"><a href={profile.linkedin} target="_blank" rel="noopener noreferrer" aria-label="Hanan on LinkedIn"><Linkedin size={18} /></a><a href={`mailto:${profile.email}`} aria-label="Email Hanan"><Mail size={18} /></a><a href={resumeUrl} download aria-label="Download Hanan’s resume"><Download size={18} /></a></div></div><div className="footer-nav"><span className="section-label">Navigate</span>{[...links.slice(0, 2), { name: 'Achievements', id: 'achievements' }, ...links.slice(2)].map(link => <a href={`#${link.id}`} key={link.id}>{link.name}<ArrowUpRight size={14} /></a>)}<a href="#home">Back to top <ChevronUp size={14} /></a></div><div className="footer-education"><span className="section-label">Education & certifications</span>{education.map(item => <div className="education-item" key={item.degree}><h3>{item.degree}</h3><p>{item.school} <span>· {item.dates}</span></p><p>Majors: {item.major}</p></div>)}<div className="certifications">{certifications.map(cert => <div key={cert}><Check size={12} /><span>{cert}</span></div>)}</div></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} Peerzada Abdul Hanan</span><span>Crafted for storytelling <span className="gold-star">✦</span></span></div></div></footer>;
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <a href="#home" className="brand">
+              hanan<span>✦</span>
+            </a>
+            <p>
+              Peerzada Abdul Hanan
+              <br />
+              Strategy led. Story driven. Always human.
+            </p>
+            <div className="social-links">
+              <a
+                href={profile.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Hanan on LinkedIn"
+              >
+                <Linkedin size={18} />
+              </a>
+              <a href={`mailto:${profile.email}`} aria-label="Email Hanan">
+                <Mail size={18} />
+              </a>
+              <a href={resumeUrl} download aria-label="Download Hanan’s resume">
+                <Download size={18} />
+              </a>
+            </div>
+          </div>
+          <div className="footer-education">
+            <span className="section-label">The foundation</span>
+            {education.map((item) => (
+              <div className="education-item" key={item.degree}>
+                <h3>{item.degree}</h3>
+                <p>
+                  {item.school} · {item.dates}
+                </p>
+                <p>Majors: {item.major}</p>
+              </div>
+            ))}
+          </div>
+          <div className="footer-certifications">
+            <span className="section-label">Always learning</span>
+            <div className="certifications">
+              {certifications.map((cert) => (
+                <div key={cert}>
+                  <Check size={13} />
+                  <span>{cert}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Peerzada Abdul Hanan</span>
+          <span>
+            Made with intention. <span>✦</span>
+          </span>
+          <a href="#home">
+            Back to top <ArrowUpRight size={15} />
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
 }
-
 export default function App() {
-  return <MotionConfig reducedMotion="user"><a className="skip-link" href="#main-content">Skip to content</a><Header /><main id="main-content"><Hero /><About /><Experience /><Achievements /><Skills /><Contact /></main><Footer /></MotionConfig>;
+  return (
+    <MotionConfig reducedMotion="user">
+      <a className="skip-link" href="#main-content">
+        Skip to content
+      </a>
+      <Header />
+      <main id="main-content">
+        <Hero />
+        <BrandStrip />
+        <Work />
+        <Results />
+        <About />
+        <Experience />
+        <Skills />
+        <Contact />
+      </main>
+      <Footer />
+    </MotionConfig>
+  );
 }
