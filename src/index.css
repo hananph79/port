@@ -1039,6 +1039,46 @@ details[open] > summary > svg {
   font-size: 0.75rem;
   line-height: 1.6;
 }
+.tool-item {
+  display: grid !important;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+}
+.tool-logo,
+.tool-monogram {
+  width: 23px;
+  height: 23px;
+  color: var(--ink);
+  fill: currentColor;
+}
+.tool-monogram {
+  display: grid;
+  place-items: center;
+  background: var(--yellow-light);
+  border: 1px solid #c3a747;
+  font: 700 0.68rem Syne;
+  line-height: 1;
+  color: #80631a;
+}
+.tool-adobepremierepro {
+  background: #30205e;
+  color: #e8d9ff;
+  border-color: #30205e;
+  font-family: Inter;
+}
+.tool-microsoftword,
+.tool-microsoftexcel,
+.tool-powerpoint,
+.tool-outlooksharepoint {
+  background: #e9f1f5;
+  color: #116b8e;
+  border-color: #b5d3df;
+}
+.tool-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .tool-list svg {
   flex-shrink: 0;
   color: #8d7132;

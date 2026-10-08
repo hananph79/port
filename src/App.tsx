@@ -36,9 +36,48 @@ import {
   education,
   certifications,
 } from "./content";
+import {
+  siGoogleanalytics,
+  siHootsuite,
+  siMeta,
+  siWondersharefilmora,
+} from "simple-icons";
 
 const resumeUrl = "/peerzada-abdul-hanan-resume.pdf";
 const ease = [0.22, 1, 0.36, 1] as const;
+const brandIcons = {
+  "Meta Ads Manager": siMeta,
+  "Google Analytics": siGoogleanalytics,
+  Filmora: siWondersharefilmora,
+  "Sprinklr & HootSuite": siHootsuite,
+};
+const brandMonograms: Record<string, string> = {
+  Canva: "C",
+  "Adobe Premiere Pro": "Pr",
+  Camtasia: "C",
+  Clipchamp: "C",
+  "MS Word": "W",
+  "Outlook & Sharepoint": "M",
+  "Microsoft Excel": "X",
+  PowerPoint: "P",
+};
+function ToolLogo({ tool }: { tool: string }) {
+  const icon = brandIcons[tool as keyof typeof brandIcons];
+  if (icon)
+    return (
+      <svg className="tool-logo" viewBox="0 0 24 24" aria-hidden="true">
+        <path d={icon.path} />
+      </svg>
+    );
+  return (
+    <span
+      className={`tool-monogram tool-${tool.toLowerCase().replace(/[^a-z]/g, "")}`}
+      aria-hidden="true"
+    >
+      {brandMonograms[tool]}
+    </span>
+  );
+}
 const links = [
   { name: "Selected work", id: "work" },
   { name: "About", id: "about" },
@@ -792,8 +831,9 @@ function Skills() {
             <h3 className="small-heading">Tools of the trade</h3>
             <div className="tool-list">
               {tools.map((tool) => (
-                <span key={tool}>
-                  {tool}
+                <span className="tool-item" key={tool}>
+                  <ToolLogo tool={tool} />
+                  <span className="tool-name">{tool}</span>
                   <ArrowUpRight size={12} />
                 </span>
               ))}
