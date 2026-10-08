@@ -24,3 +24,5 @@ Deploy the generated `dist/` directory to a static host. No backend, API keys, o
 All resume content is in `src/content.ts`. The original downloadable resume is in `public/peerzada-abdul-hanan-resume.pdf`. No portrait was supplied, so the hero uses an editorial initials composition. All experience responsibilities, achievements, skills, tools, degrees, certifications, languages, and interests are included.
 
 The layout supports mobile navigation with keyboard focus management, skip navigation, visible focus states, accessible form errors, and reduced-motion preferences. Runtime processes must be restarted in fresh cloud tasks; use the existing isolated checkout rather than creating a Git worktree.
+
+Motion includes masked headline entrances, a gold underline reveal, scroll-linked reading and timeline progress, staggered skill and tool reveals, and subtle card and button interactions. Entrance animations run once, the floating monogram pauses offscreen, and reduced-motion preferences show content immediately.

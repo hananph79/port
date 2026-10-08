@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { motion, MotionConfig, useReducedMotion } from 'framer-motion';
+import { motion, MotionConfig, useReducedMotion, useScroll, useSpring } from 'framer-motion';
 import { ArrowUpRight, ArrowRight, ArrowDown, Download, Menu, X, Mail, Phone, MapPin, Linkedin, Sparkles, Eye, TrendingUp, Users, Video, Network, Layers, Check, ChevronUp, Send } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -13,10 +13,11 @@ import { profile, skills, tools, experience, achievements, education, certificat
 const cn = (...values: Parameters<typeof clsx>) => twMerge(clsx(values));
 const links = [{ name: 'About', id: 'about' }, { name: 'Experience', id: 'experience' }, { name: 'Skills', id: 'skills' }, { name: 'Contact', id: 'contact' }];
 const resumeUrl = '/peerzada-abdul-hanan-resume.pdf';
+const editorialEase = [.22, 1, .36, 1] as const;
 
 function Reveal({ children, className = '', delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
   const reduced = useReducedMotion();
-  return <motion.div className={className} initial={reduced ? false : { opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .1 }} transition={{ duration: .5, ease: 'easeOut', delay }}>{children}</motion.div>;
+  return <motion.div className={className} initial={reduced ? false : { opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .1 }} transition={{ duration: reduced ? 0 : .75, ease: editorialEase, delay: reduced ? 0 : delay }}>{children}</motion.div>;
 }
 
 function Number({ value, suffix = '', decimals = 0 }: { value: number; suffix?: string; decimals?: number }) {
@@ -26,6 +27,9 @@ function Number({ value, suffix = '', decimals = 0 }: { value: number; suffix?: 
 }
 
 function Header() {
+  const reduced = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const progress = useSpring(scrollYProgress, { stiffness: 180, damping: 30 });
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
@@ -60,20 +64,22 @@ function Header() {
       <a className="btn-gold nav-connect" href="#contact">Let’s Connect <ArrowUpRight size={15} /></a>
       <button ref={menuButton} className="mobile-toggle" aria-label={open ? 'Close navigation' : 'Open navigation'} aria-expanded={open} aria-controls="mobile-menu" onClick={() => setOpen(!open)}>{open ? <X /> : <Menu />}</button>
     </div>
-    {open && <div id="mobile-menu" ref={menuPanel} className="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation"><span className="section-label">Explore the story</span>{links.map((link, i) => <a key={link.id} href={`#${link.id}`} onClick={() => setOpen(false)}><span>0{i + 1}</span>{link.name}<ArrowUpRight /></a>)}<a className="mobile-resume" href={resumeUrl} download><Download size={18} /> Download Resume</a></div>}
+    <motion.div className="reading-progress" style={{ scaleX: reduced ? scrollYProgress : progress }} aria-hidden="true" />
+    {open && <motion.div id="mobile-menu" ref={menuPanel} className="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation" initial={reduced ? false : { opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : .3, ease: editorialEase }}><span className="section-label">Explore the story</span>{links.map((link, i) => <motion.a key={link.id} href={`#${link.id}`} onClick={() => setOpen(false)} initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: reduced ? 0 : .06 + i * .045, duration: reduced ? 0 : .35, ease: editorialEase }}><span>0{i + 1}</span>{link.name}<ArrowUpRight /></motion.a>)}<a className="mobile-resume" href={resumeUrl} download><Download size={18} /> Download Resume</a></motion.div>}
   </header>;
 }
 
 function Hero() {
   const reduced = useReducedMotion();
+  const { ref: portraitRef, inView: portraitVisible } = useInView({ threshold: .1 });
   return <section id="home" className="hero">
     <div className="container hero-grid">
       <div className="hero-copy">
         <Reveal><div className="opportunity"><span className="status-dot" /> Open to Opportunities <Sparkles size={13} /></div></Reveal>
         <div className="hero-eyebrow">DIGITAL MARKETING & CONTENT PROFESSIONAL</div>
-        <motion.h1 className="text-editorial" initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: .08 } } }}>
-          {['Strategy.', 'Storytelling.', 'Real'].map(word => <motion.span className={word === 'Real' ? 'hero-inline' : 'hero-word'} key={word} variants={{ hidden: { opacity: 0, y: reduced ? 0 : 20 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: .5 }}>{word}{' '}</motion.span>)}
-          <motion.em variants={{ hidden: { opacity: 0, y: reduced ? 0 : 20 }, visible: { opacity: 1, y: 0 } }}>impact.</motion.em>
+        <motion.h1 className="text-editorial" initial={reduced ? false : 'hidden'} animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: reduced ? 0 : .12, delayChildren: reduced ? 0 : .1 } } }}>
+          {['Strategy.', 'Storytelling.'].map(word => <span className="hero-word-mask" key={word}><motion.span className="hero-word" variants={{ hidden: { opacity: 0, y: '105%' }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .85, ease: editorialEase }}>{word}</motion.span></span>)}
+          <span className="hero-word-mask"><motion.span className="hero-final-line" variants={{ hidden: { opacity: 0, y: '105%' }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .85, ease: editorialEase }}>Real <em className="hero-impact">impact.</em></motion.span></span>
         </motion.h1>
         <Reveal delay={.2}><p className="hero-description">I’m Hanan. I turn brand stories into meaningful connections — through strategy-led social media, content, and campaigns.</p></Reveal>
         <Reveal className="hero-actions" delay={.3}><a href="#experience" className="btn-gold">View My Work <ArrowUpRight size={19} /></a><a href={resumeUrl} className="btn-outline-gold" download>Download Resume <Download size={17} /></a></Reveal>
@@ -81,7 +87,7 @@ function Hero() {
       </div>
       <Reveal className="hero-art" delay={.2}>
         <div className="portrait-overline"><span>THE PERSON BEHIND THE CONTENT</span><ArrowDown size={14} /></div>
-        <div className="portrait-scene"><div className="portrait-halo" /><div className="portrait-circle"><span className="initials">PH<span className="initials-dot">.</span></span><span className="portrait-caption">A CREATIVE MIND.<br />A STRATEGIC APPROACH.</span></div><div className="portrait-star" aria-hidden="true"><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="6"><path d="M50 4v92M4 50h92M17 17l66 66M17 83l66-66" /></svg></div><div className="portrait-note"><span className="note-icon"><TrendingUp size={20} /></span><div><strong>Made for meaningful growth.</strong><span>Ideas with purpose. Content with impact.</span></div></div><span className="portrait-side-label">CREATIVITY × STRATEGY</span></div>
+        <div className="portrait-scene" ref={portraitRef} data-visible={portraitVisible}><div className="portrait-halo" /><div className="portrait-circle"><span className="initials">PH<span className="initials-dot">.</span></span><span className="portrait-caption">A CREATIVE MIND.<br />A STRATEGIC APPROACH.</span></div><motion.div className="portrait-star" aria-hidden="true" initial={reduced ? false : { opacity: 0, rotate: -18, scale: .8 }} whileInView={{ opacity: 1, rotate: 0, scale: 1 }} viewport={{ once: true }} transition={{ duration: reduced ? 0 : .8, delay: reduced ? 0 : .3, ease: editorialEase }}><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="6"><path d="M50 4v92M4 50h92M17 17l66 66M17 83l66-66" /></svg></motion.div><motion.div className="portrait-note" initial={reduced ? false : { opacity: 0, y: 24, rotate: -6 }} whileInView={{ opacity: 1, y: 0, rotate: -3 }} viewport={{ once: true }} transition={{ type: "spring", stiffness: 100, damping: 18, delay: reduced ? 0 : .4 }}><span className="note-icon"><TrendingUp size={20} /></span><div><strong>Made for meaningful growth.</strong><span>Ideas with purpose. Content with impact.</span></div></motion.div><span className="portrait-side-label">CREATIVITY × STRATEGY</span></div>
         <div className="portrait-footer"><span><MapPin size={13} /> Bengaluru, India</span><span>3+ years of storytelling</span></div>
       </Reveal>
     </div>
@@ -99,19 +105,23 @@ function About() {
 
 function Experience() {
   const reduced = useReducedMotion();
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: timelineRef, offset: ['start 75%', 'end 65%'] });
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 25 });
   return <section id="experience" className="section-cream section-space"><div className="container"><Reveal className="section-heading"><span className="section-label">02 / The journey</span><h2>Experience that<br /><span className="editorial-accent">shapes the story.</span></h2><p>From ambitious education brands to global conversations.</p></Reveal>
-    <div className="timeline"><div className="timeline-line" />{experience.map((job, index) => <div className={cn('timeline-item', index % 2 === 1 && 'right')} key={job.company}><span className="timeline-dot" /><motion.article className="card-warm experience-card" initial={reduced ? false : { x: index % 2 === 0 ? -40 : 40, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} viewport={{ once: true, amount: .1 }} transition={{ duration: .5 }}><div className="job-top"><span className="job-category">{job.category}</span>{job.current && <span className="current-badge">CURRENT</span>}</div><h3>{job.company}</h3><p className="job-role">{job.role}</p><div className="job-dates">{job.dates}</div><ul>{job.points.map(point => <li key={point}>{point}</li>)}</ul></motion.article><span className="timeline-index">0{index + 1}</span></div>)}</div>
+    <div className="timeline" ref={timelineRef}><div className="timeline-line timeline-track" aria-hidden="true" /><motion.div className="timeline-line timeline-progress" style={{ scaleY: reduced ? 1 : progress }} aria-hidden="true" />{experience.map((job, index) => <div className={cn('timeline-item', index % 2 === 1 && 'right')} key={job.company}><motion.span className="timeline-dot" initial={reduced ? false : { scale: .5 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: 'spring', stiffness: 250, damping: 18, delay: reduced ? 0 : .15 }} /><motion.article className="card-warm experience-card" whileHover={reduced ? undefined : { y: -4, transition: { duration: .25 } }} initial={reduced ? false : { x: index % 2 === 0 ? -32 : 32, opacity: 0 }} whileInView={{ x: 0, opacity: 1 }} viewport={{ once: true, amount: .1 }} transition={{ duration: reduced ? 0 : .7, ease: editorialEase }}><div className="job-top"><span className="job-category">{job.category}</span>{job.current && <span className="current-badge">CURRENT</span>}</div><h3>{job.company}</h3><p className="job-role">{job.role}</p><div className="job-dates">{job.dates}</div><ul>{job.points.map(point => <li key={point}>{point}</li>)}</ul></motion.article><span className="timeline-index">0{index + 1}</span></div>)}</div>
   </div></section>;
 }
 
 const resultIcons = { views: Eye, impressions: TrendingUp, audience: Users, content: Video, team: Network, hub: Layers };
 function Achievements() {
-  return <section id="achievements" className="section-gold achievements section-space"><div className="container"><Reveal className="section-heading"><span className="section-label">03 / Proof in the numbers</span><h2 className="text-editorial">Results that speak.</h2><p>A few milestones. A lot of meaningful work.</p></Reveal><div className="achievement-grid">{achievements.map((result, index) => { const Icon = resultIcons[result.icon as keyof typeof resultIcons]; return <Reveal key={result.title} delay={index * .1}><motion.article initial={{ scale: .9 }} whileInView={{ scale: 1 }} viewport={{ once: true }} className="card-warm achievement-card"><div className="achievement-top"><Icon size={23} strokeWidth={1.5} /><span>0{index + 1}</span></div><div className="achievement-number">{'number' in result && result.number !== undefined ? <Number value={result.number} suffix={result.suffix} decimals={result.decimals} /> : result.text}</div><h3>{result.title}</h3><p>{result.description}</p></motion.article></Reveal>; })}</div></div></section>;
+  const reduced = useReducedMotion();
+  return <section id="achievements" className="section-gold achievements section-space"><div className="container"><Reveal className="section-heading"><span className="section-label">03 / Proof in the numbers</span><h2 className="text-editorial">Results that speak.</h2><p>A few milestones. A lot of meaningful work.</p></Reveal><div className="achievement-grid">{achievements.map((result, index) => { const Icon = resultIcons[result.icon as keyof typeof resultIcons]; return <Reveal key={result.title} delay={index * .1}><motion.article initial={reduced ? false : { scale: .96 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ duration: reduced ? 0 : .6, ease: editorialEase }} className="card-warm achievement-card" whileHover={reduced ? undefined : { y: -4, transition: { duration: .25 } }}><div className="achievement-top"><Icon size={23} strokeWidth={1.5} /><span>0{index + 1}</span></div><div className="achievement-number">{'number' in result && result.number !== undefined ? <Number value={result.number} suffix={result.suffix} decimals={result.decimals} /> : result.text}</div><h3>{result.title}</h3><p>{result.description}</p></motion.article></Reveal>; })}</div></div></section>;
 }
 
 function Skills() {
   const reduced = useReducedMotion();
-  return <section id="skills" className="section-white section-space"><div className="container skills-grid"><Reveal><span className="section-label">04 / Core skills</span><h2>Creative thinking.<br /><span className="editorial-accent">Strategic doing.</span></h2><p className="section-intro">The skills behind the stories, the campaigns, and the growth.</p><motion.div className="skill-tags" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: .05 } } }}>{skills.map(skill => <motion.span className="tag-skill" key={skill} variants={{ hidden: { opacity: 0, y: reduced ? 0 : 8 }, visible: { opacity: 1, y: 0 } }}>{skill}</motion.span>)}</motion.div></Reveal><Reveal delay={.15}><span className="section-label">Tools & platforms</span><h3 className="tools-heading">A well-equipped toolkit.</h3><p className="section-intro">From the first idea to the final performance report.</p><div className="tools-grid">{tools.map((tool, index) => <div className="tool-card" key={tool}><span className="tool-initial">{['M', 'G', 'C', 'Pr', 'C', 'F', 'C', 'W', 'S/H', 'O/S', 'X', 'P'][index]}</span><span>{tool}</span></div>)}</div></Reveal></div></section>;
+  return <section id="skills" className="section-white section-space"><div className="container skills-grid"><Reveal><span className="section-label">04 / Core skills</span><h2>Creative thinking.<br /><span className="editorial-accent">Strategic doing.</span></h2><p className="section-intro">The skills behind the stories, the campaigns, and the growth.</p><motion.div className="skill-tags" initial={reduced ? false : "hidden"} whileInView="visible" viewport={{ once: true }} variants={{ hidden: {}, visible: { transition: { staggerChildren: reduced ? 0 : .04 } } }}>{skills.map(skill => <motion.span className="tag-skill" key={skill} variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .4, ease: editorialEase }}>{skill}</motion.span>)}</motion.div></Reveal><Reveal delay={.15}><span className="section-label">Tools & platforms</span><h3 className="tools-heading">A well-equipped toolkit.</h3><p className="section-intro">From the first idea to the final performance report.</p><motion.div className="tools-grid" initial={reduced ? false : "hidden"} whileInView="visible" viewport={{ once: true, amount: .15 }} variants={{ hidden: {}, visible: { transition: { staggerChildren: reduced ? 0 : .045 } } }}>{tools.map((tool, index) => <motion.div className="tool-card" key={tool} whileHover={reduced ? undefined : { y: -4, transition: { duration: .25 } }} variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }} transition={{ duration: reduced ? 0 : .5, ease: editorialEase }}><span className="tool-initial">{['M', 'G', 'C', 'Pr', 'C', 'F', 'C', 'W', 'S/H', 'O/S', 'X', 'P'][index]}</span><span>{tool}</span></motion.div>)}</motion.div></Reveal></div></section>;
 }
 
 const contactSchema = z.object({ name: z.string().trim().min(2, 'Please enter at least 2 characters.').max(100, 'Please keep your name under 100 characters.'), email: z.string().trim().email('Please enter a valid email address.').max(254), subject: z.string().trim().min(3, 'Please enter a subject of at least 3 characters.').max(200), message: z.string().trim().min(10, 'Please write at least 10 characters.').max(3000, 'Please keep your message under 3,000 characters.') });
