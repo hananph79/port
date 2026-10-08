@@ -49,7 +49,22 @@ const brandPaths: Record<string, string> = {
   "Sprinklr & HootSuite":
     "M11.417 11.14c.505.75.28 1.572-.38 2.017-.66.444-1.505.343-2.01-.407-.506-.75-.282-1.572.378-2.017.66-.444 1.506-.343 2.012.407zm5.017-.274c-.66.444-.884 1.266-.379 2.016.506.75 1.352.852 2.012.407.66-.444.884-1.266.379-2.016-.506-.75-1.352-.852-2.012-.407zM23.856 3.78 19.03 6.638l.236.272c2.224 2.613 3.591 6.409 4.247 8.606a4.362 4.362 0 0 1-.638 3.8C21.449 21.295 18.398 24 12.369 24c-6.58 0-10-3.25-11.644-5.251a3.117 3.117 0 0 1-.51-3.067c.909-2.444 2.766-7.126 4.257-8.825a13.158 13.158 0 0 1 2.897-2.478L2.4.534c-.27-.208-.034-.632.285-.513l8.077 3.006c.38-.066.758-.1 1.13-1.084l7.744-.695c.266-.024.378.331.147.464z",
 };
+const brandFiles: Record<string, string> = {
+  Canva: "/logos/canva.svg",
+  "Adobe Premiere Pro": "/logos/adobe-premiere.svg",
+  "Outlook & Sharepoint": "/logos/microsoft.svg",
+  "Sprinklr & HootSuite": "/logos/hootsuite.svg",
+};
 function ToolLogo({ tool }: { tool: string }) {
+  if (brandFiles[tool])
+    return (
+      <img
+        className="tool-logo tool-image"
+        src={brandFiles[tool]}
+        alt=""
+        aria-hidden="true"
+      />
+    );
   const path = brandPaths[tool];
   if (path)
     return (

@@ -1052,6 +1052,7 @@ details[open] > summary > svg {
   color: var(--ink);
   fill: currentColor;
 }
+.tool-image { object-fit: contain; fill: none !important; }
 .tool-monogram {
   display: grid;
   place-items: center;
