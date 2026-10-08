@@ -493,39 +493,14 @@ function Hero() {
             </Reveal>
           </div>
           <Reveal className="hero-art" delay={0.25}>
-            <div className="strategy-poster">
-              <div className="poster-meta">
-                <span>A NOTE ON MY APPROACH</span>
+            <div className="portrait-frame">
+              <img
+                src="/hanan-profile.jpeg"
+                alt="Hanan looking out over the city from a terrace"
+              />
+              <div className="portrait-label">
+                <span>PEERZADA ABDUL HANAN</span>
                 <span>01—03</span>
-              </div>
-              <div className="poster-type">
-                MAKE
-                <br />
-                IT <span>mean</span>
-                <br />
-                SOMETHING<span className="poster-period">.</span>
-              </div>
-              <svg
-                className="poster-arrow"
-                viewBox="0 0 180 100"
-                fill="none"
-                aria-hidden="true"
-              >
-                <path
-                  d="M8 80C65 90 33 8 89 20c28 6 14 48 39 43 14-2 26-25 35-48m-28 9 29-13 9 29"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <div className="poster-bottom">
-                <span>
-                  STRATEGY FIRST.
-                  <br />
-                  ALWAYS HUMAN.
-                </span>
-                <span className="poster-spark">✦</span>
               </div>
             </div>
             <div className="result-ticket">
