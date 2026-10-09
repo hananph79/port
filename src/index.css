@@ -1705,23 +1705,42 @@ textarea {
     font-size: 0.78rem;
   }
   .hero-art {
-    width: min(380px, 90%);
+    width: min(250px, 70vw);
     margin-inline: auto;
     padding-right: 0;
+    position: relative;
+    display: block;
   }
   .strategy-poster {
     min-height: 350px;
     padding: 24px;
   }
-  .portrait-frame,
+  .portrait-frame {
+    width: 100%;
+    height: auto;
+    min-height: unset;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    transform: none;
+    box-shadow: 0 12px 32px rgba(26, 18, 9, 0.16), 0 0 0 6px var(--paper-deep);
+    border: 3px solid var(--line);
+    margin: 0 auto;
+    overflow: hidden;
+  }
+  .portrait-frame::after {
+    border-radius: 50%;
+  }
   .portrait-frame img {
-    min-height: 350px;
+    width: 100%;
+    height: 100%;
+    min-height: unset;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: center;
+    transform: none;
   }
   .portrait-label {
-    left: 20px;
-    right: 20px;
-    bottom: 18px;
-    font-size: 0.46rem;
+    display: none;
   }
   .poster-meta {
     font-size: 0.48rem;
@@ -1733,19 +1752,7 @@ textarea {
     margin-left: 45%;
   }
   .result-ticket {
-    left: -15px;
-    right: 0;
-    padding: 16px;
-  }
-  .result-ticket strong {
-    font-size: 1.75rem;
-  }
-  .result-ticket div > span {
-    font-size: 0.65rem;
-  }
-  .ticket-icon {
-    width: 40px;
-    height: 40px;
+    display: none !important;
   }
   .hero-bottom {
     gap: 15px;
@@ -2060,20 +2067,21 @@ textarea {
     padding: 20px;
     min-height: 325px;
   }
-  .portrait-frame,
+  .hero-art {
+    width: min(210px, 68vw);
+  }
+  .portrait-frame {
+    width: 100%;
+    height: auto;
+    min-height: unset;
+  }
   .portrait-frame img {
-    min-height: 325px;
+    min-height: unset;
   }
   .poster-arrow {
     margin-left: 35%;
   }
-  .result-ticket {
-    padding: 12px;
-    gap: 10px;
-  }
-  .result-ticket div > span {
-    font-size: 0.55rem;
-  }
+
   .work-art {
     padding: 16px;
     height: 355px;
