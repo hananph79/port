@@ -1,30 +1,52 @@
-# Peerzada Abdul Hanan — Strategy & Stories
+# Hanan Portfolio — CMS-Powered Website
 
-A responsive, single-page creative strategist portfolio using the supplied resume. The design pairs warm paper tones, mustard accents, oversized typography, and original editorial illustrations with real career outcomes. Built with Vite 5, React 18, TypeScript 5, Tailwind CSS 3, and Framer Motion 11. Fonts are self-hosted through Fontsource.
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/hananph79/port)
 
-## Develop
+A responsive, single-page creative strategist portfolio with a Supabase-powered Admin CMS. Built with Vite 5, React 18, TypeScript 5, Tailwind CSS 3, and Framer Motion 11. Fonts are self-hosted through Fontsource.
 
-Requires Node.js 20.19+ (validated with Node 24.19.0) and npm.
+---
+
+## 🚀 Deploy to Vercel
+
+1. Click the **"Deploy with Vercel"** button above, or go to [vercel.com/new](https://vercel.com/new) and import this repository.
+2. Vercel **auto-detects** the Vite framework — no manual framework/build settings needed.
+3. Add these two **Environment Variables** in Vercel → Project Settings → Environment Variables:
+
+| Variable | Where to find it |
+|---|---|
+| `VITE_SUPABASE_URL` | Supabase dashboard → your project → Settings → API → Project URL |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase dashboard → your project → Settings → API → `anon` public key |
+
+4. Click **Deploy** — Vercel builds and publishes automatically on every `git push`. ✅
+
+> **Note:** If you don't add Supabase credentials, the portfolio still works and shows the default resume data as a fallback.
+
+---
+
+## 🛠 Local Development
+
+Requires Node.js 20+ and npm.
 
 ```sh
 npm ci
-npm run dev -- --port 5173
+npm run dev
 ```
 
-## Validate and publish
+## ✅ Build & Preview
 
 ```sh
-npm run typecheck
-npm run build
-npm run preview -- --port 4173
+npm run typecheck   # type-check only
+npm run build       # production build → dist/
+npm run preview     # preview the dist/ build locally
 ```
 
-Deploy the generated `dist/` directory to a static host. No backend, API keys, or environment variables are required. The contact form validates locally and opens a prefilled `mailto:` draft; it does not send messages automatically. Users can also contact Hanan directly by email, phone, or LinkedIn.
+---
 
-All resume content is in `src/content.ts`. The original downloadable resume is in `public/peerzada-abdul-hanan-resume.pdf`. No portrait was supplied, so the about section uses an editorial initials composition. All experience responsibilities, achievements, skills, tools, degrees, certifications, languages, and interests are included.
+## 🗂 Admin CMS
 
-Selected work includes expandable contribution summaries for Inventure Academy and Schneider Electric. The work illustrations are presentation artwork for this portfolio, not screenshots of delivered campaigns. Every role and responsibility remains available in the expandable experience index.
+- Go to `/auth` → log in with your Supabase email/password.
+- Edit every section: Hero, About, Projects, Experience, Achievements, Skills, Tools, Contact.
+- Changes reflect on the live portfolio immediately.
 
-The layout supports mobile navigation with keyboard focus management, skip navigation, visible focus states, accessible form errors, and reduced-motion preferences. Runtime processes must be restarted in fresh cloud tasks; use the existing isolated checkout rather than creating a Git worktree.
-
-Motion includes masked headline entrances, scroll-linked reading progress, one-time section reveals, and subtle poster and button interactions. Reduced-motion preferences show content immediately. Layouts adapt from 320px phones through wide desktop screens.
+All resume content defaults are in `src/data/defaultPortfolioData.ts`.
+The Supabase schema is in `supabase/schema.sql`.
